@@ -1,0 +1,1435 @@
+:root {
+    --primary-color: #3498db;
+    --primary-dark: #2980b9;
+    --primary-light: #5dade2;
+    --secondary-color: #2ecc71;
+    --danger-color: #e74c3c;
+    --warning-color: #f39c12;
+    --dark-color: #2c3e50;
+    --light-color: #ecf0f1;
+    --lighter-color: #f8f9fa;
+    --background-color: #ffffff;
+    --surface-color: #f8f9fa;
+    --border-color: #dee2e6;
+    --border-dark: #adb5bd;
+    --text-color: #2c3e50;
+    --text-light: #6c757d;
+    --shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+    --shadow-lg: 0 10px 25px rgba(0, 0, 0, 0.15);
+    --shadow-sm: 0 1px 3px rgba(0, 0, 0, 0.1);
+    --transition: all 0.3s ease;
+    --radius: 8px;
+}
+
+[data-theme="dark"] {
+    --background-color: #1a1a1a;
+    --surface-color: #2d2d2d;
+    --border-color: #404040;
+    --border-dark: #505050;
+    --text-color: #f0f0f0;
+    --text-light: #b0b0b0;
+    --light-color: #333333;
+    --lighter-color: #2a2a2a;
+    --dark-color: #f8f9fa;
+    --shadow: 0 4px 6px rgba(0, 0, 0, 0.3);
+    --shadow-lg: 0 10px 25px rgba(0, 0, 0, 0.4);
+    --shadow-sm: 0 1px 3px rgba(0, 0, 0, 0.2);
+}
+
+* {
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+    -webkit-tap-highlight-color: transparent;
+}
+
+html {
+    font-size: 16px;
+    height: 100%;
+    touch-action: manipulation;
+}
+
+body {
+    font-family: 'Segoe UI', 'Tahoma', 'Geneva', 'Verdana', sans-serif;
+    background-color: var(--background-color);
+    color: var(--text-color);
+    overflow: hidden;
+    height: 100vh;
+    transition: var(--transition);
+    line-height: 1.6;
+    font-weight: 400;
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
+}
+
+#app {
+    position: relative;
+    width: 100%;
+    height: 100vh;
+    overflow: hidden;
+}
+
+/* HUD الرئيسي البسيط */
+#main-hud {
+    position: absolute;
+    top: 20px;
+    left: 20px;
+    z-index: 1000;
+    display: flex;
+    gap: 10px;
+    flex-wrap: wrap;
+}
+
+.hud-btn {
+    width: 50px;
+    height: 50px;
+    border-radius: 50%;
+    background-color: var(--primary-color);
+    color: white;
+    border: none;
+    cursor: pointer;
+    font-size: 20px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    box-shadow: var(--shadow);
+    transition: var(--transition);
+    user-select: none;
+    touch-action: manipulation;
+    position: relative;
+    overflow: hidden;
+}
+
+.hud-btn:hover {
+    background-color: var(--primary-dark);
+    transform: translateY(-2px);
+    box-shadow: var(--shadow-lg);
+}
+
+.hud-btn:active {
+    transform: translateY(0) scale(0.98);
+}
+
+.hud-btn.disabled {
+    background-color: var(--text-light);
+    cursor: not-allowed;
+    opacity: 0.6;
+}
+
+.hud-btn.disabled:hover {
+    transform: none;
+    box-shadow: var(--shadow);
+    background-color: var(--text-light);
+}
+
+.quick-controls {
+    display: flex;
+    gap: 10px;
+}
+
+/* تحسينات للجوال */
+@media (hover: none) and (pointer: coarse) {
+    .hud-btn {
+        width: 55px;
+        height: 55px;
+        font-size: 22px;
+    }
+    
+    .hud-btn:hover {
+        transform: none;
+    }
+    
+    .hud-btn:active {
+        transform: scale(0.95);
+    }
+}
+
+/* القائمة الجانبية */
+#side-menu {
+    position: absolute;
+    top: 0;
+    right: 0;
+    width: 380px;
+    max-width: 90vw;
+    height: 100vh;
+    background-color: var(--surface-color);
+    box-shadow: var(--shadow-lg);
+    overflow-y: auto;
+    overflow-x: hidden;
+    padding: 20px;
+    z-index: 999;
+    transition: transform 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+    direction: rtl;
+    scrollbar-width: thin;
+    scrollbar-color: var(--primary-color) var(--surface-color);
+    -webkit-overflow-scrolling: touch;
+}
+
+#side-menu::-webkit-scrollbar {
+    width: 6px;
+}
+
+#side-menu::-webkit-scrollbar-track {
+    background: var(--surface-color);
+}
+
+#side-menu::-webkit-scrollbar-thumb {
+    background-color: var(--primary-color);
+    border-radius: 3px;
+}
+
+#side-menu.hidden {
+    transform: translateX(100%);
+}
+
+.menu-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 25px;
+    padding-bottom: 15px;
+    border-bottom: 2px solid var(--border-color);
+    position: sticky;
+    top: 0;
+    background-color: var(--surface-color);
+    z-index: 1;
+    padding-top: 5px;
+}
+
+.menu-header h3 {
+    font-size: 1.5rem;
+    color: var(--primary-color);
+    font-weight: 600;
+    margin: 0;
+}
+
+.close-btn {
+    background: none;
+    border: none;
+    font-size: 24px;
+    color: var(--text-color);
+    cursor: pointer;
+    padding: 5px 10px;
+    border-radius: var(--radius);
+    transition: var(--transition);
+    line-height: 1;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 36px;
+    height: 36px;
+    touch-action: manipulation;
+}
+
+.close-btn:hover {
+    color: var(--danger-color);
+    background-color: rgba(231, 76, 60, 0.1);
+}
+
+.close-btn:active {
+    transform: scale(0.9);
+}
+
+.menu-section {
+    margin-bottom: 25px;
+    padding-bottom: 20px;
+    border-bottom: 1px solid var(--border-color);
+}
+
+.menu-section:last-child {
+    border-bottom: none;
+    margin-bottom: 10px;
+    padding-bottom: 10px;
+}
+
+.menu-section h4 {
+    margin-bottom: 15px;
+    color: var(--primary-color);
+    font-size: 1.1rem;
+    font-weight: 600;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+}
+
+.menu-section h4::before {
+    content: '';
+    width: 4px;
+    height: 16px;
+    background-color: var(--primary-color);
+    border-radius: 2px;
+    display: inline-block;
+}
+
+.menu-section h5 {
+    color: var(--text-color);
+    font-size: 1rem;
+    font-weight: 600;
+    margin-bottom: 10px;
+}
+
+.menu-section h6 {
+    color: var(--text-color);
+    font-size: 0.9rem;
+    font-weight: 600;
+    margin-bottom: 8px;
+}
+
+/* أزرار الأشكال */
+.shape-buttons {
+    display: grid;
+    grid-template-columns: repeat(2, 1fr);
+    gap: 10px;
+    margin-bottom: 15px;
+}
+
+.shape-buttons button {
+    padding: 12px 8px;
+    background-color: var(--lighter-color);
+    border: 2px solid var(--border-color);
+    border-radius: var(--radius);
+    cursor: pointer;
+    transition: var(--transition);
+    color: var(--text-color);
+    font-size: 14px;
+    font-weight: 500;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    text-align: center;
+    min-height: 45px;
+    user-select: none;
+    touch-action: manipulation;
+    position: relative;
+    overflow: hidden;
+}
+
+.shape-buttons button:hover {
+    background-color: var(--primary-color);
+    color: white;
+    border-color: var(--primary-color);
+    transform: translateY(-2px);
+    box-shadow: var(--shadow);
+}
+
+.shape-buttons button:active {
+    transform: translateY(0);
+}
+
+.shape-buttons button.disabled {
+    opacity: 0.5;
+    cursor: not-allowed;
+    background-color: var(--lighter-color);
+    color: var(--text-light);
+    border-color: var(--border-color);
+}
+
+.shape-buttons button.disabled:hover {
+    transform: none;
+    box-shadow: none;
+    background-color: var(--lighter-color);
+    color: var(--text-light);
+    border-color: var(--border-color);
+}
+
+/* عناصر التحكم */
+.object-controls {
+    display: flex;
+    flex-direction: column;
+    gap: 15px;
+}
+
+.control-group {
+    display: flex;
+    flex-direction: column;
+    gap: 5px;
+}
+
+.object-controls label {
+    font-size: 14px;
+    color: var(--text-color);
+    font-weight: 500;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 5px;
+}
+
+.object-controls label span {
+    color: var(--primary-color);
+    font-weight: 600;
+    min-width: 40px;
+    text-align: left;
+    direction: ltr;
+}
+
+/* خيارات حجم الخامة */
+.texture-size-section {
+    margin-top: 15px;
+    padding: 12px;
+    background-color: rgba(0, 0, 0, 0.02);
+    border-radius: var(--radius);
+    border: 1px solid var(--border-color);
+}
+
+.texture-size-options {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 8px;
+}
+
+.texture-size-option {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    padding: 10px;
+    border: 2px solid var(--border-color);
+    border-radius: var(--radius);
+    cursor: pointer;
+    transition: var(--transition);
+    text-align: center;
+    background: var(--lighter-color);
+    user-select: none;
+    touch-action: manipulation;
+    position: relative;
+    overflow: hidden;
+}
+
+.texture-size-option:hover {
+    border-color: var(--primary-color);
+    background: rgba(52, 152, 219, 0.05);
+    transform: translateY(-2px);
+    box-shadow: var(--shadow-sm);
+}
+
+.texture-size-option:active {
+    transform: translateY(0);
+}
+
+.texture-size-option.active {
+    border-color: var(--primary-color);
+    background: rgba(52, 152, 219, 0.1);
+    font-weight: bold;
+}
+
+.texture-size-option.active span {
+    color: var(--primary-color);
+    font-weight: 600;
+}
+
+.texture-size-option input[type="radio"] {
+    margin-bottom: 6px;
+    accent-color: var(--primary-color);
+    cursor: pointer;
+    width: 18px;
+    height: 18px;
+    flex-shrink: 0;
+}
+
+.texture-size-option span {
+    font-size: 13px;
+    color: var(--text-color);
+    font-weight: 500;
+    transition: var(--transition);
+}
+
+.texture-size-option small {
+    font-size: 11px;
+    color: var(--text-light);
+    margin-top: 2px;
+}
+
+[data-theme="dark"] .texture-size-option {
+    background: rgba(255, 255, 255, 0.05);
+}
+
+[data-theme="dark"] .texture-size-option:hover {
+    background: rgba(52, 152, 219, 0.1);
+}
+
+[data-theme="dark"] .texture-size-option.active {
+    background: rgba(52, 152, 219, 0.15);
+}
+
+/* تحسينات للجوال */
+@media (hover: none) and (pointer: coarse) {
+    .texture-size-option {
+        padding: 12px 8px;
+        min-height: 60px;
+    }
+    
+    .texture-size-option:hover {
+        transform: none;
+    }
+    
+    .texture-size-option:active {
+        background-color: rgba(52, 152, 219, 0.1);
+        transform: scale(0.98);
+    }
+    
+    .texture-size-option input[type="radio"] {
+        width: 20px;
+        height: 20px;
+    }
+    
+    .texture-size-option span {
+        font-size: 14px;
+    }
+}
+
+input[type="range"] {
+    width: 100%;
+    height: 6px;
+    background: var(--border-color);
+    border-radius: 3px;
+    outline: none;
+    -webkit-appearance: none;
+    margin: 8px 0;
+    cursor: pointer;
+    touch-action: manipulation;
+}
+
+input[type="range"]:disabled {
+    opacity: 0.5;
+    cursor: not-allowed;
+}
+
+input[type="range"]::-webkit-slider-thumb {
+    -webkit-appearance: none;
+    width: 20px;
+    height: 20px;
+    background: var(--primary-color);
+    border-radius: 50%;
+    cursor: pointer;
+    border: 3px solid var(--background-color);
+    box-shadow: var(--shadow-sm);
+    transition: var(--transition);
+}
+
+input[type="range"]::-webkit-slider-thumb:hover {
+    transform: scale(1.2);
+}
+
+input[type="range"]:disabled::-webkit-slider-thumb {
+    background: var(--text-light);
+    cursor: not-allowed;
+}
+
+input[type="color"] {
+    width: 100%;
+    height: 40px;
+    border: 2px solid var(--border-color);
+    border-radius: var(--radius);
+    cursor: pointer;
+    background: var(--background-color);
+    padding: 2px;
+    transition: var(--transition);
+    touch-action: manipulation;
+}
+
+input[type="color"]:hover {
+    border-color: var(--primary-color);
+    transform: translateY(-1px);
+}
+
+input[type="color"]:disabled {
+    opacity: 0.5;
+    cursor: not-allowed;
+}
+
+input[type="color"]:disabled:hover {
+    border-color: var(--border-color);
+    transform: none;
+}
+
+button:not(.hud-btn):not(.close-btn):not(.control-btn) {
+    padding: 12px 16px;
+    background-color: var(--lighter-color);
+    border: 2px solid var(--border-color);
+    border-radius: var(--radius);
+    cursor: pointer;
+    transition: var(--transition);
+    color: var(--text-color);
+    font-size: 14px;
+    font-weight: 500;
+    text-align: center;
+    user-select: none;
+    touch-action: manipulation;
+    position: relative;
+    overflow: hidden;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 8px;
+    min-height: 44px;
+}
+
+button:not(.hud-btn):not(.close-btn):not(.control-btn):hover {
+    background-color: var(--primary-color);
+    color: white;
+    border-color: var(--primary-color);
+    transform: translateY(-2px);
+    box-shadow: var(--shadow);
+}
+
+button:not(.hud-btn):not(.close-btn):not(.control-btn):active {
+    transform: translateY(0);
+}
+
+button:not(.hud-btn):not(.close-btn):not(.control-btn).active {
+    background-color: var(--primary-color);
+    color: white;
+    border-color: var(--primary-color);
+}
+
+button:not(.hud-btn):not(.close-btn):not(.control-btn).danger {
+    background-color: var(--danger-color);
+    color: white;
+    border-color: var(--danger-color);
+}
+
+button:not(.hud-btn):not(.close-btn):not(.control-btn).danger:hover {
+    background-color: var(--danger-color);
+    border-color: var(--danger-color);
+}
+
+button:not(.hud-btn):not(.close-btn):not(.control-btn):disabled {
+    opacity: 0.5;
+    cursor: not-allowed;
+    transform: none;
+    background-color: var(--lighter-color);
+    color: var(--text-light);
+    border-color: var(--border-color);
+}
+
+button:not(.hud-btn):not(.close-btn):not(.control-btn):disabled:hover {
+    background-color: var(--lighter-color);
+    color: var(--text-light);
+    border-color: var(--border-color);
+    box-shadow: none;
+    transform: none;
+}
+
+/* تحسينات للجوال */
+@media (hover: none) and (pointer: coarse) {
+    button:not(.hud-btn):not(.close-btn):not(.control-btn) {
+        padding: 14px 16px;
+        min-height: 50px;
+        font-size: 15px;
+    }
+    
+    button:not(.hud-btn):not(.close-btn):not(.control-btn):hover {
+        transform: none;
+    }
+    
+    button:not(.hud-btn):not(.close-btn):not(.control-btn):active {
+        background-color: var(--primary-color);
+        color: white;
+        transform: scale(0.98);
+    }
+}
+
+label {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    cursor: pointer;
+    font-size: 14px;
+    color: var(--text-color);
+    user-select: none;
+    padding: 8px 0;
+    transition: var(--transition);
+    border-radius: var(--radius);
+    padding-left: 5px;
+}
+
+label:hover {
+    background-color: rgba(52, 152, 219, 0.05);
+}
+
+label.disabled {
+    opacity: 0.5;
+    cursor: not-allowed;
+}
+
+label.disabled:hover {
+    background-color: transparent;
+}
+
+input[type="checkbox"] {
+    width: 20px;
+    height: 20px;
+    cursor: pointer;
+    accent-color: var(--primary-color);
+    flex-shrink: 0;
+    touch-action: manipulation;
+}
+
+input[type="checkbox"]:disabled {
+    cursor: not-allowed;
+    opacity: 0.5;
+}
+
+/* تحسينات للجوال */
+@media (hover: none) and (pointer: coarse) {
+    input[type="checkbox"] {
+        width: 22px;
+        height: 22px;
+    }
+    
+    label {
+        font-size: 15px;
+    }
+}
+
+/* لوحة تحكم المشهد */
+#scene-controls {
+    position: absolute;
+    bottom: 20px;
+    left: 50%;
+    transform: translateX(-50%);
+    display: flex;
+    gap: 10px;
+    background-color: var(--surface-color);
+    padding: 12px 20px;
+    border-radius: var(--radius);
+    box-shadow: var(--shadow-lg);
+    z-index: 998;
+    backdrop-filter: blur(10px);
+    background-color: rgba(248, 249, 250, 0.9);
+    border: 1px solid rgba(222, 226, 230, 0.5);
+    min-width: 300px;
+    justify-content: center;
+    align-items: center;
+}
+
+[data-theme="dark"] #scene-controls {
+    background-color: rgba(45, 45, 45, 0.9);
+    border: 1px solid rgba(64, 64, 64, 0.5);
+}
+
+#scene-controls.hidden {
+    display: none;
+}
+
+.control-btn {
+    padding: 10px 18px;
+    border: 2px solid var(--border-color);
+    background-color: var(--background-color);
+    color: var(--text-color);
+    border-radius: var(--radius);
+    cursor: pointer;
+    transition: var(--transition);
+    font-size: 14px;
+    font-weight: 500;
+    min-width: 80px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 8px;
+    user-select: none;
+    position: relative;
+    overflow: hidden;
+    touch-action: manipulation;
+}
+
+.control-btn.active {
+    background-color: var(--primary-color);
+    color: white;
+    border-color: var(--primary-color);
+    box-shadow: 0 4px 12px rgba(52, 152, 219, 0.3);
+}
+
+.control-btn:hover:not(.active) {
+    border-color: var(--primary-color);
+    color: var(--primary-color);
+    transform: translateY(-2px);
+}
+
+.control-btn:active {
+    transform: translateY(0);
+}
+
+.control-btn.disabled {
+    opacity: 0.5;
+    cursor: not-allowed;
+}
+
+.control-btn.disabled:hover {
+    border-color: var(--border-color);
+    color: var(--text-color);
+    transform: none;
+}
+
+/* تحسينات للجوال */
+@media (hover: none) and (pointer: coarse) {
+    .control-btn {
+        padding: 12px 20px;
+        min-width: 90px;
+        font-size: 15px;
+    }
+    
+    .control-btn:hover:not(.active) {
+        transform: none;
+    }
+    
+    .control-btn:active:not(.active) {
+        transform: scale(0.95);
+    }
+}
+
+#selected-object-name {
+    margin-left: 20px;
+    font-size: 14px;
+    color: var(--text-color);
+    font-weight: 500;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    max-width: 200px;
+    direction: ltr;
+    text-align: left;
+    padding: 8px 12px;
+    background-color: rgba(52, 152, 219, 0.1);
+    border-radius: var(--radius);
+    border-left: 3px solid var(--primary-color);
+}
+
+#selected-object-name.empty {
+    background-color: rgba(108, 117, 125, 0.1);
+    border-left: 3px solid var(--text-light);
+    color: var(--text-light);
+    font-style: italic;
+}
+
+/* إشعارات */
+#notifications {
+    position: absolute;
+    top: 20px;
+    right: 20px;
+    z-index: 1001;
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+    max-width: 350px;
+    width: 100%;
+    pointer-events: none;
+}
+
+#notifications.hidden {
+    display: none !important;
+}
+
+.notification {
+    padding: 16px 20px;
+    background-color: var(--surface-color);
+    border-left: 4px solid var(--primary-color);
+    border-radius: var(--radius);
+    box-shadow: var(--shadow-lg);
+    animation: slideIn 0.3s ease;
+    font-size: 14px;
+    line-height: 1.5;
+    pointer-events: auto;
+    position: relative;
+    overflow: hidden;
+    backdrop-filter: blur(10px);
+    border: 1px solid var(--border-color);
+    transition: transform 0.3s, opacity 0.3s;
+}
+
+.notification.success {
+    border-left-color: var(--secondary-color);
+    background-color: rgba(46, 204, 113, 0.05);
+}
+
+.notification.error {
+    border-left-color: var(--danger-color);
+    background-color: rgba(231, 76, 60, 0.05);
+}
+
+.notification.warning {
+    border-left-color: var(--warning-color);
+    background-color: rgba(243, 156, 18, 0.05);
+}
+
+.notification.info {
+    border-left-color: var(--primary-color);
+    background-color: rgba(52, 152, 219, 0.05);
+}
+
+@keyframes slideIn {
+    from {
+        transform: translateX(100%);
+        opacity: 0;
+    }
+    to {
+        transform: translateX(0);
+        opacity: 1;
+    }
+}
+
+/* شاشة التحميل */
+#loading {
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background-color: rgba(0, 0, 0, 0.85);
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    z-index: 1002;
+    color: white;
+    backdrop-filter: blur(5px);
+    transition: opacity 0.3s;
+}
+
+#loading.hidden {
+    opacity: 0;
+    pointer-events: none;
+}
+
+.loader {
+    width: 60px;
+    height: 60px;
+    border: 4px solid rgba(255, 255, 255, 0.1);
+    border-radius: 50%;
+    border-top-color: var(--primary-color);
+    animation: spin 1s cubic-bezier(0.55, 0.15, 0.45, 0.85) infinite;
+    margin-bottom: 25px;
+}
+
+@keyframes spin {
+    to {
+        transform: rotate(360deg);
+    }
+}
+
+#loading-text {
+    margin-bottom: 20px;
+    font-size: 18px;
+    font-weight: 500;
+    text-align: center;
+    color: white;
+}
+
+#progress-bar {
+    width: 300px;
+    height: 8px;
+    background-color: rgba(255, 255, 255, 0.1);
+    border-radius: 4px;
+    overflow: hidden;
+    margin-bottom: 20px;
+    display: block;
+}
+
+#progress-bar.hidden {
+    display: none;
+}
+
+#progress-fill {
+    height: 100%;
+    background: linear-gradient(90deg, var(--primary-color), var(--secondary-color));
+    width: 0%;
+    transition: width 0.3s ease;
+    border-radius: 4px;
+}
+
+/* معلومات الذاكرة */
+.memory-info {
+    padding: 12px;
+    background-color: rgba(52, 152, 219, 0.1);
+    border-radius: var(--radius);
+    font-size: 13px;
+    text-align: center;
+    margin-top: 15px;
+    border: 1px solid rgba(52, 152, 219, 0.2);
+    color: var(--text-color);
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+}
+
+.memory-info span {
+    font-weight: 500;
+}
+
+#memory-usage {
+    font-weight: 700;
+    color: var(--primary-color);
+    font-size: 14px;
+    direction: ltr;
+    display: inline-block;
+    min-width: 40px;
+    text-align: left;
+}
+
+/* معلومات الكائن */
+#object-info {
+    margin-top: 15px;
+    padding: 12px;
+    background-color: rgba(52, 152, 219, 0.05);
+    border-radius: var(--radius);
+    border: 1px solid rgba(52, 152, 219, 0.1);
+    font-size: 12px;
+    line-height: 1.6;
+}
+
+#object-info.hidden {
+    display: none;
+}
+
+#object-info .object-type {
+    font-weight: bold;
+    color: var(--primary-color);
+    margin-bottom: 5px;
+    display: inline-block;
+    padding: 2px 6px;
+    background-color: rgba(52, 152, 219, 0.1);
+    border-radius: 3px;
+    font-size: 11px;
+}
+
+#object-info .object-type.native {
+    background-color: rgba(46, 204, 113, 0.1);
+    color: var(--secondary-color);
+}
+
+#object-info .object-type.imported {
+    background-color: rgba(155, 89, 182, 0.1);
+    color: #9b59b6;
+}
+
+/* معاينة النسيج */
+#texture-preview {
+    margin-top: 10px;
+    padding: 10px;
+    background-color: rgba(0, 0, 0, 0.03);
+    border-radius: var(--radius);
+    border: 1px solid var(--border-color);
+}
+
+#texture-preview-img {
+    width: 100%;
+    max-height: 100px;
+    object-fit: cover;
+    border-radius: 4px;
+    display: block;
+}
+
+/* معلومات النظام */
+.system-info {
+    margin-top: 15px;
+    padding: 10px;
+    background-color: var(--light-color);
+    border-radius: var(--radius);
+    font-size: 12px;
+    line-height: 1.6;
+}
+
+.system-info small {
+    color: var(--text-color);
+}
+
+.system-info strong {
+    color: var(--primary-color);
+    display: block;
+    margin-bottom: 5px;
+}
+
+.system-info .counter {
+    font-weight: bold;
+    color: var(--primary-color);
+}
+
+.system-info .counter.objects {
+    color: var(--secondary-color);
+}
+
+.system-info .counter.imported {
+    color: #9b59b6;
+}
+
+/* حاوية المشهد */
+#scene-container {
+    width: 100%;
+    height: 100vh;
+    position: relative;
+    overflow: hidden;
+    background: linear-gradient(135deg, #f5f7fa 0%, #c3cfe2 100%);
+    touch-action: none;
+}
+
+[data-theme="dark"] #scene-container {
+    background: linear-gradient(135deg, #2c3e50 0%, #1a252f 100%);
+}
+
+#scene-container canvas {
+    display: block;
+    outline: none;
+}
+
+/* تحسينات للجوال */
+@media (max-width: 768px) {
+    html {
+        font-size: 14px;
+    }
+    
+    #side-menu {
+        width: 100%;
+        max-width: 100vw;
+        padding: 15px;
+    }
+    
+    .shape-buttons {
+        grid-template-columns: repeat(2, 1fr);
+    }
+    
+    #scene-controls {
+        flex-direction: row;
+        left: 50%;
+        transform: translateX(-50%);
+        bottom: 10px;
+        padding: 10px 15px;
+        min-width: auto;
+        width: 90%;
+        flex-wrap: wrap;
+        justify-content: center;
+        gap: 8px;
+    }
+    
+    .control-btn {
+        min-width: 70px;
+        padding: 10px 14px;
+        font-size: 13px;
+        flex: 1;
+    }
+    
+    #selected-object-name {
+        display: none;
+    }
+    
+    .hud-btn {
+        width: 55px;
+        height: 55px;
+        font-size: 22px;
+    }
+    
+    .menu-header {
+        margin-bottom: 20px;
+        padding-bottom: 12px;
+    }
+    
+    .menu-section {
+        margin-bottom: 20px;
+        padding-bottom: 15px;
+    }
+    
+    button:not(.hud-btn):not(.close-btn):not(.control-btn) {
+        padding: 14px 16px;
+        font-size: 14px;
+        min-height: 50px;
+    }
+    
+    #progress-bar {
+        width: 250px;
+    }
+    
+    #notifications {
+        max-width: calc(100% - 40px);
+        top: 10px;
+        right: 10px;
+    }
+    
+    .notification {
+        padding: 14px 16px;
+        font-size: 13px;
+    }
+    
+    .quick-controls {
+        gap: 8px;
+    }
+    
+    .memory-info {
+        flex-direction: column;
+        gap: 10px;
+        text-align: center;
+    }
+    
+    .system-info {
+        font-size: 11px;
+    }
+    
+    /* تحسينات خيارات حجم الخامة للجوال */
+    .texture-size-options {
+        grid-template-columns: repeat(3, 1fr);
+        gap: 6px;
+    }
+    
+    .texture-size-option {
+        padding: 8px 4px;
+        min-height: 55px;
+    }
+    
+    .texture-size-option span {
+        font-size: 12px;
+    }
+}
+
+@media (max-width: 480px) {
+    html {
+        font-size: 13px;
+    }
+    
+    #side-menu {
+        padding: 12px;
+    }
+    
+    .shape-buttons {
+        grid-template-columns: repeat(2, 1fr);
+        gap: 8px;
+    }
+    
+    #scene-controls {
+        flex-direction: column;
+        gap: 8px;
+        width: 90%;
+        max-width: 200px;
+        padding: 12px;
+    }
+    
+    .control-btn {
+        width: 100%;
+        min-width: auto;
+        padding: 12px;
+    }
+    
+    .menu-section h4 {
+        font-size: 1.1rem;
+    }
+    
+    button:not(.hud-btn):not(.close-btn):not(.control-btn) {
+        padding: 12px 14px;
+        font-size: 13px;
+        min-height: 48px;
+    }
+    
+    #main-hud {
+        top: 10px;
+        left: 10px;
+        gap: 8px;
+    }
+    
+    .hud-btn {
+        width: 50px;
+        height: 50px;
+        font-size: 20px;
+    }
+    
+    #loading-text {
+        font-size: 16px;
+        padding: 0 20px;
+        text-align: center;
+    }
+    
+    #progress-bar {
+        width: 200px;
+    }
+    
+    .menu-section {
+        padding-bottom: 15px;
+        margin-bottom: 15px;
+    }
+    
+    .object-controls {
+        gap: 12px;
+    }
+    
+    .control-group {
+        gap: 8px;
+    }
+    
+    /* تحسينات خيارات حجم الخامة للشاشات الصغيرة */
+    .texture-size-options {
+        grid-template-columns: repeat(3, 1fr);
+        gap: 4px;
+    }
+    
+    .texture-size-option {
+        padding: 6px 2px;
+        min-height: 50px;
+    }
+    
+    .texture-size-option span {
+        font-size: 11px;
+    }
+    
+    .texture-size-option input[type="radio"] {
+        width: 16px;
+        height: 16px;
+    }
+}
+
+/* تحسينات للأجهزة التي تدعم hover */
+@media (hover: hover) and (pointer: fine) {
+    .hud-btn:hover::after {
+        width: 100%;
+        height: 100%;
+    }
+    
+    button:not(.hud-btn):not(.close-btn):not(.control-btn):hover::after {
+        width: 100%;
+        height: 100%;
+    }
+    
+    .shape-buttons button:hover::after {
+        width: 100%;
+        height: 100%;
+    }
+    
+    .texture-size-option:hover::after {
+        width: 100%;
+        height: 100%;
+    }
+}
+
+/* تحسينات الوصول */
+.visually-hidden {
+    position: absolute;
+    width: 1px;
+    height: 1px;
+    padding: 0;
+    margin: -1px;
+    overflow: hidden;
+    clip: rect(0, 0, 0, 0);
+    white-space: nowrap;
+    border: 0;
+}
+
+/* تحسينات لمس خاصة للجوال */
+@media (hover: none) and (pointer: coarse) {
+    .hud-btn:hover,
+    .shape-buttons button:hover,
+    button:not(.hud-btn):not(.close-btn):not(.control-btn):hover,
+    .control-btn:hover:not(.active),
+    .texture-size-option:hover {
+        transform: none;
+    }
+    
+    .hud-btn,
+    .shape-buttons button,
+    button:not(.hud-btn):not(.close-btn):not(.control-btn),
+    .control-btn,
+    input[type="checkbox"],
+    input[type="color"],
+    .texture-size-option {
+        min-height: 44px;
+    }
+    
+    .close-btn {
+        width: 44px;
+        height: 44px;
+    }
+    
+    input[type="range"] {
+        min-height: 44px;
+    }
+    
+    .menu-section h4,
+    label,
+    .control-group label,
+    .object-controls label {
+        font-size: 15px;
+    }
+    
+    .object-controls {
+        gap: 20px;
+    }
+    
+    .control-group {
+        gap: 8px;
+    }
+}
+
+/* تأثيرات خاصة للأزرار المعطلة */
+.hud-btn.disabled:active,
+.shape-buttons button.disabled:active,
+button:not(.hud-btn):not(.close-btn):not(.control-btn):disabled:active,
+.control-btn.disabled:active {
+    transform: none !important;
+}
+
+/* تحسينات لوضع التحميل */
+#loading #cancel-loading {
+    margin-top: 20px;
+    padding: 8px 16px;
+    background: var(--danger-color);
+    color: white;
+    border: none;
+    border-radius: 4px;
+    cursor: pointer;
+    transition: var(--transition);
+}
+
+#loading #cancel-loading:hover {
+    background: #c0392b;
+    transform: translateY(-2px);
+}
+
+#loading #cancel-loading:active {
+    transform: translateY(0);
+}
+
+.hidden {
+    display: none !important;
+}
+
+/* تحسينات للصور في المعاينة */
+#texture-preview-img.loading {
+    filter: blur(5px);
+    opacity: 0.7;
+}
+
+/* تحسينات لشريط التمرير في الجوال */
+@media (max-width: 768px) {
+    #side-menu {
+        scrollbar-width: none;
+    }
+    
+    #side-menu::-webkit-scrollbar {
+        display: none;
+    }
+}
+
+/* تحسينات للخطوط على الجوال */
+@media (max-width: 480px) {
+    body {
+        -webkit-text-size-adjust: 100%;
+    }
+}
+
+/* أنماط إضافية لأنواع الكائنات */
+.object-type-badge {
+    display: inline-block;
+    padding: 2px 6px;
+    border-radius: 3px;
+    font-size: 10px;
+    font-weight: bold;
+    text-transform: uppercase;
+    margin-left: 5px;
+    vertical-align: middle;
+}
+
+.object-type-badge.native {
+    background-color: rgba(46, 204, 113, 0.2);
+    color: var(--secondary-color);
+    border: 1px solid rgba(46, 204, 113, 0.3);
+}
+
+.object-type-badge.imported {
+    background-color: rgba(155, 89, 182, 0.2);
+    color: #9b59b6;
+    border: 1px solid rgba(155, 89, 182, 0.3);
+}

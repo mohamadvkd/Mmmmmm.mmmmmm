@@ -1,0 +1,311 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>محرر أشكال 3D</title>
+    <link rel="stylesheet" href="style.css">
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/three@0.128.0/examples/js/controls/OrbitControls.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/three@0.128.0/examples/js/loaders/GLTFLoader.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/three@0.128.0/examples/js/loaders/DRACOLoader.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/three@0.128.0/examples/js/controls/TransformControls.js"></script>
+    
+    <!-- مكتبة GLTFExporter المحسنة من CDN -->
+    <script src="https://cdn.jsdelivr.net/npm/three@0.128.0/examples/js/exporters/GLTFExporter.js"></script>
+    
+    <!-- مكتبة خارجية لتحسين تصدير GLB -->
+    <script src="https://unpkg.com/three-gltf-exporter@1.0.0/dist/three-gltf-exporter.min.js"></script>
+    
+    <!-- مكتبة FileSaver.js لتحميل الملفات -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/FileSaver.js/2.0.5/FileSaver.min.js"></script>
+</head>
+<body>
+    <div id="app">
+        <!-- HUD الرئيسي البسيط -->
+        <div id="main-hud">
+            <button id="menu-toggle" class="hud-btn">☰</button>
+            <button id="add-object" class="hud-btn">+</button>
+            <button id="toggle-grid" class="hud-btn" title="إظهار/إخفاء الشبكة">#</button>
+            <button id="toggle-notifications" class="hud-btn" title="إخفاء/إظهار الإشعارات">🔔</button>
+            <div class="quick-controls">
+                <button id="undo-btn-hud" class="hud-btn" title="تراجع">↶</button>
+                <button id="redo-btn-hud" class="hud-btn" title="إعادة">↷</button>
+            </div>
+        </div>
+
+        <!-- القائمة الجانبية المخفية -->
+        <div id="side-menu" class="hidden">
+            <div class="menu-header">
+                <h3>محرر الأشكال ثلاثي الأبعاد</h3>
+                <button id="close-menu" class="close-btn">✕</button>
+            </div>
+
+            <div class="menu-section">
+                <h4>إضافة أشكال</h4>
+                <div class="shape-buttons">
+                    <button data-shape="cube">مكعب</button>
+                    <button data-shape="cylinder">أسطوانة</button>
+                    <button data-shape="sphere">كرة</button>
+                    <button data-shape="plane">لوح</button>
+                </div>
+            </div>
+
+            <div class="menu-section">
+                <h4>التحكم في الكائن</h4>
+                <div class="object-controls">
+                    <button id="delete-object">حذف الكائن</button>
+                    <button id="duplicate-object">تكرار الكائن</button>
+                    <div>
+                        <label>اللون:</label>
+                        <input type="color" id="object-color" value="#3498db">
+                    </div>
+                    <div>
+                        <label>الخشونة: <span id="roughness-value">0.5</span></label>
+                        <input type="range" id="roughness" min="0" max="1" step="0.1" value="0.5">
+                    </div>
+                    <div>
+                        <label>المعدنية: <span id="metalness-value">0</span></label>
+                        <input type="range" id="metalness" min="0" max="1" step="0.1" value="0">
+                    </div>
+                    <div>
+                        <label>الشفافية: <span id="opacity-value">1</span></label>
+                        <input type="range" id="opacity" min="0" max="1" step="0.1" value="1">
+                    </div>
+                    
+                    <!-- إضافة عناصر تكرار الخامة -->
+                    <div class="material-tiling-section" style="margin-top: 15px; padding-top: 15px; border-top: 1px solid var(--border-color);">
+                        <h5 style="margin-bottom: 10px;">تكرار الخامة</h5>
+                        <div>
+                            <label>التكرار الأفقي (U): <span id="texture-repeat-u-value">1</span></label>
+                            <input type="range" id="texture-repeat-u" min="1" max="50" step="1" value="1">
+                        </div>
+                        <div>
+                            <label>التكرار العمودي (V): <span id="texture-repeat-v-value">1</span></label>
+                            <input type="range" id="texture-repeat-v" min="1" max="50" step="1" value="1">
+                        </div>
+                        <button id="apply-texture-tiling" style="margin-top: 10px; width: 100%; padding: 8px;">
+                            تطبيق تكرار الخامة
+                        </button>
+                    </div>
+                    
+                    <div class="material-section" style="margin-top: 15px; padding-top: 15px; border-top: 1px solid var(--border-color);">
+                        <h5 style="margin-bottom: 10px;">الخامات المخصصة</h5>
+                        <input type="file" id="texture-file" accept=".jpg,.jpeg,.png" hidden>
+                        <button id="load-texture">تحميل خامة (JPG/PNG)</button>
+                        
+                        <!-- قسم حجم الخامة المضافة -->
+                        <div class="texture-size-section" style="margin-top: 15px;">
+                            <h6 style="margin-bottom: 8px; color: var(--text-color); font-size: 14px;">حجم الخامة:</h6>
+                            <div class="texture-size-options" style="display: grid; grid-template-columns: repeat(3, 1fr); gap: 8px;">
+                                <label class="texture-size-option" data-size="128">
+                                    <input type="radio" name="texture-size" value="128">
+                                    <span>128×128</span>
+                                </label>
+                                <label class="texture-size-option" data-size="256">
+                                    <input type="radio" name="texture-size" value="256" checked>
+                                    <span>256×256</span>
+                                </label>
+                                <label class="texture-size-option" data-size="512">
+                                    <input type="radio" name="texture-size" value="512">
+                                    <span>512×512</span>
+                                </label>
+                            </div>
+                            <small style="display: block; margin-top: 5px; color: var(--text-light); font-size: 12px;">
+                                ✓ 256×256 هو الحجم الموصى به للأداء
+                            </small>
+                        </div>
+                        
+                        <div id="texture-preview" style="margin-top: 10px; display: none;">
+                            <img id="texture-preview-img" style="width: 100%; max-height: 100px; object-fit: cover; border-radius: 4px;">
+                            <button id="apply-texture" style="margin-top: 5px; width: 100%; padding: 8px;">تطبيق الخامة</button>
+                        </div>
+                    </div>
+                    
+                    <label style="margin-top: 15px;">
+                        <input type="checkbox" id="snap-mode">
+                        تفعيل Snap للمحاذاة
+                    </label>
+                    
+                    <div id="object-info" class="hidden" style="margin-top: 10px; padding: 8px; background: var(--light-color); border-radius: 4px;">
+                        <small>لا يوجد كائن محدد</small>
+                    </div>
+                </div>
+            </div>
+
+            <div class="menu-section">
+                <h4>الملفات</h4>
+                <div class="file-controls">
+                    <div class="export-options">
+                        <h5 style="margin-bottom: 10px; color: var(--text-color);">خيارات التصدير</h5>
+                        <button id="export-glb" class="primary-btn">📥 تصدير مشهد كـ GLB</button>
+                        <button id="export-gltf" class="secondary-btn" style="margin-top: 10px;">📥 تصدير مشهد كـ GLTF</button>
+                        <button id="export-obj" class="secondary-btn" style="margin-top: 10px;">📥 تصدير مشهد كـ OBJ</button>
+                        <small style="display: block; margin-top: 8px; color: var(--text-light); font-size: 12px; text-align: center;">
+                            GLB هو التنسيق الموصى به (ثنائي مضغوط)
+                        </small>
+                    </div>
+                    
+                    <div class="import-options" style="margin-top: 15px;">
+                        <h5 style="margin-bottom: 10px; color: var(--text-color);">خيارات الاستيراد</h5>
+                        <button id="import-glb-btn" class="primary-btn">📤 استيراد GLB/GLTF</button>
+                        <input type="file" id="import-gltf" accept=".glb,.gltf,.obj" hidden>
+                        <small style="display: block; margin-top: 8px; color: var(--text-light); font-size: 12px; text-align: center;">
+                            يدعم ملفات GLB/GLTF/OBJ
+                        </small>
+                    </div>
+                    
+                    <div class="memory-info">
+                        <span>الذاكرة المستخدمة: <span id="memory-usage">0</span> MB</span>
+                        <button id="clean-memory" style="margin-left: 10px; padding: 4px 8px; font-size: 12px; background: var(--warning-color);">
+                            تنظيف
+                        </button>
+                    </div>
+                </div>
+            </div>
+
+            <div class="menu-section">
+                <h4>الإعدادات</h4>
+                <div class="settings-controls">
+                    <button id="clear-scene" class="danger">🗑️ مسح المشهد</button>
+                    <label>
+                        <input type="checkbox" id="grid-visible" checked>
+                        إظهار الشبكة
+                    </label>
+                    <label>
+                        <input type="checkbox" id="dark-mode">
+                        🌙 الوضع الداكن
+                    </label>
+                    
+                    <div style="margin-top: 15px; display: flex; gap: 10px;">
+                        <button id="reset-view" style="flex: 1;">
+                            🔄 إعادة ضبط العرض
+                        </button>
+                    </div>
+                    
+                    <!-- معلومات النظام -->
+                    <div class="system-info" style="margin-top: 15px; padding: 10px; background: var(--light-color); border-radius: var(--radius);">
+                        <small>
+                            <strong>معلومات النظام:</strong><br>
+                            الكائنات: <span id="object-count">0</span><br>
+                            الكائنات المستوردة: <span id="imported-count">0</span><br>
+                            نسخة Three.js: r128<br>
+                            مكتبات التصدير: ✓ متاحة
+                        </small>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- لوحة التحكم بالمشهد -->
+        <div id="scene-controls" class="hidden">
+            <button id="translate-btn" class="control-btn active">تحريك</button>
+            <button id="rotate-btn" class="control-btn">تدوير</button>
+            <button id="scale-btn" class="control-btn">تغيير الحجم</button>
+            
+            <div id="selected-object-name" style="margin-left: 15px; font-size: 14px; color: var(--text-color);">
+                لا يوجد كائن محدد
+            </div>
+        </div>
+
+        <!-- إشعارات -->
+        <div id="notifications"></div>
+
+        <!-- تحميل -->
+        <div id="loading" class="hidden">
+            <div class="loader"></div>
+            <div id="loading-text">جاري التحميل...</div>
+            <div id="progress-bar" class="hidden">
+                <div id="progress-fill"></div>
+            </div>
+            <button id="cancel-loading" class="hidden" style="margin-top: 20px; padding: 8px 16px; background: var(--danger-color); color: white; border: none; border-radius: 4px;">
+                إلغاء
+                            </button>
+        </div>
+
+        <!-- حاوية المشهد -->
+        <div id="scene-container"></div>
+    </div>
+
+    <script src="scene.js"></script>
+    <script src="main.js"></script>
+    
+    <!-- تهيئة إضافية -->
+    <script>
+        // تأكد من تحميل المكتبات
+        document.addEventListener('DOMContentLoaded', function() {
+            console.log('✅ مكتبات التصدير المحسنة محملة');
+            
+            // اختبار توفر المكتبات
+            if (typeof THREE !== 'undefined') {
+                console.log('✅ Three.js محمل:', THREE.REVISION);
+            }
+            
+            if (typeof THREE.GLTFExporter !== 'undefined') {
+                console.log('✅ GLTFExporter محمل');
+            }
+            
+            if (typeof saveAs !== 'undefined') {
+                console.log('✅ FileSaver.js محمل');
+            }
+            
+            // إضافة رؤوس الأزرار الجديدة
+            const style = document.createElement('style');
+            style.textContent = `
+                .primary-btn {
+                    background: linear-gradient(135deg, var(--primary-color), var(--primary-dark)) !important;
+                    color: white !important;
+                    font-weight: bold !important;
+                }
+                
+                .secondary-btn {
+                    background: var(--lighter-color) !important;
+                    color: var(--text-color) !important;
+                    border: 2px solid var(--primary-color) !important;
+                }
+                
+                .secondary-btn:hover {
+                    background: var(--primary-light) !important;
+                    color: white !important;
+                }
+                
+                /* تنسيق خيارات حجم الخامة */
+                .texture-size-option {
+                    display: flex;
+                    flex-direction: column;
+                    align-items: center;
+                    padding: 8px;
+                    border: 2px solid var(--border-color);
+                    border-radius: var(--radius);
+                    cursor: pointer;
+                    transition: var(--transition);
+                    text-align: center;
+                    background: var(--lighter-color);
+                }
+                
+                .texture-size-option:hover {
+                    border-color: var(--primary-color);
+                    background: rgba(52, 152, 219, 0.05);
+                }
+                
+                .texture-size-option input[type="radio"] {
+                    margin-bottom: 5px;
+                    accent-color: var(--primary-color);
+                }
+                
+                .texture-size-option.active {
+                    border-color: var(--primary-color);
+                    background: rgba(52, 152, 219, 0.1);
+                    font-weight: bold;
+                }
+                
+                .texture-size-option span {
+                    font-size: 13px;
+                    color: var(--text-color);
+                }
+            `;
+            document.head.appendChild(style);
+        });
+    </script>
+</body>
+</html>
